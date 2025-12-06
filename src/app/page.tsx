@@ -1,7 +1,12 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useSession } from "@/lib/auth-client";
 
 export default function Home() {
+  const { data: session } = useSession();
+
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-12 md:py-24 flex flex-col items-center justify-center min-h-screen text-center">
@@ -16,13 +21,21 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg">
-              <Link href="/sign-up">Get Started</Link>
-            </Button>
+            {session ? (
+              <Button asChild size="lg">
+                <Link href="/boards">Dashboard</Link>
+              </Button>
+            ) : (
+              <>
+                <Button asChild size="lg">
+                  <Link href="/sign-up">Get Started</Link>
+                </Button>
 
-            <Button asChild variant="outline" size="lg">
-              <Link href="/sign-in">Sign In</Link>
-            </Button>
+                <Button asChild variant="outline" size="lg">
+                  <Link href="/sign-in">Sign In</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           <div className="pt-8 space-y-6 text-left">

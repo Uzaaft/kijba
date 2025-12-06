@@ -7,7 +7,7 @@ export default function DashboardLayout({
 }) {
   return (
     <>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background justify-center flex flex-row">
         {children}
       </div>
       <Toaster />

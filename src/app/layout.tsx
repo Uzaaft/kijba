@@ -11,6 +11,9 @@ const rethinkSans = Rethink_Sans({
 export const metadata: Metadata = {
   title: "Kan I Just Ban Already",
   description: "Frictionless collaborative Kanban boards",
+  icons: {
+    icon: "https://fav.farm/📋",
+  },
 };
 
 export default function RootLayout({
