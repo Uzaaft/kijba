@@ -14,6 +14,7 @@ interface Board {
   name: string;
   shareCode: string;
   createdAt: string;
+  passwordHash?: string;
 }
 
 export default function BoardSettingsPage() {
@@ -26,6 +27,8 @@ export default function BoardSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState<string | null>(null);
 
   useEffect(() => {
     const loadBoard = async () => {
@@ -79,11 +82,13 @@ export default function BoardSettingsPage() {
   };
 
   const handleRegenerateShareCode = async () => {
-    if (!confirm("Generate a new share code? The old one will no longer work.")) {
+    if (!confirm("Generate a new share code and password? The old ones will no longer work.")) {
       return;
     }
 
     setRegenerating(true);
+    setShowNewPassword(false);
+    setNewPassword(null);
 
     try {
       const response = await fetch(`/api/boards/${boardId}`, {
@@ -95,7 +100,9 @@ export default function BoardSettingsPage() {
       if (!response.ok) throw new Error("Failed to regenerate share code");
       const updated = await response.json();
       setBoard(updated);
-      toast.success("Share code regenerated");
+      setNewPassword(updated.generatedPassword);
+      setShowNewPassword(true);
+      toast.success("Share code and password regenerated");
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to regenerate share code"
@@ -199,12 +206,25 @@ export default function BoardSettingsPage() {
         </Card>
 
         {/* Security */}
-        <Card className="p-6">
+        <Card className={`p-6 ${showNewPassword ? "border-green-200 bg-green-50" : ""}`}>
           <h2 className="text-xl font-semibold mb-4">Security</h2>
           <p className="text-sm text-muted-foreground mb-4">
-            Regenerate the share code to invalidate existing access links.
-            This is useful if you need to rotate your board's access code.
+            Regenerate the share code and password to invalidate existing access links.
+            This is useful if you need to rotate your board's access credentials.
           </p>
+          
+          {showNewPassword && newPassword && (
+            <div className="mb-4 p-3 bg-white border border-green-200 rounded">
+              <p className="text-sm font-medium mb-2">New Password Generated:</p>
+              <code className="block bg-muted px-2 py-1 rounded font-mono text-sm break-all mb-2">
+                {newPassword}
+              </code>
+              <p className="text-xs text-green-700">
+                Save this password - collaborators will need it to access your board
+              </p>
+            </div>
+          )}
+          
           <Button
             variant="outline"
             onClick={handleRegenerateShareCode}
@@ -212,7 +232,7 @@ export default function BoardSettingsPage() {
             className="w-full"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
-            {regenerating ? "Regenerating..." : "Regenerate Share Code"}
+            {regenerating ? "Regenerating..." : "Regenerate Share Code & Password"}
           </Button>
         </Card>
 

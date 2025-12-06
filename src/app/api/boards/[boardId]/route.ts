@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { boards } from "@/lib/db/schema";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
-import { hashPassword, generateShareCode } from "@/lib/board";
+import { hashPassword, generateShareCode, generateDefaultPassword } from "@/lib/board";
 
 async function getBoardOwnerCheck(boardId: string, userId: string) {
   const board = await db
@@ -74,14 +74,18 @@ export async function PATCH(
   const { name, regeneratePassword } = body;
 
   const updateData: any = {};
+  let generatedPassword: string | undefined;
 
   if (name && typeof name === "string" && name.trim().length > 0) {
     updateData.name = name.trim();
   }
 
   if (regeneratePassword === true) {
+    generatedPassword = generateDefaultPassword();
+    const newPasswordHash = await hashPassword(generatedPassword);
     const newShareCode = generateShareCode();
     updateData.shareCode = newShareCode;
+    updateData.passwordHash = newPasswordHash;
   }
 
   if (Object.keys(updateData).length === 0) {
@@ -100,7 +104,10 @@ export async function PATCH(
     .where(eq(boards.id, boardId))
     .returning();
 
-  return Response.json(updated[0]);
+  return Response.json({
+    ...updated[0],
+    generatedPassword,
+  });
 }
 
 export async function DELETE(
