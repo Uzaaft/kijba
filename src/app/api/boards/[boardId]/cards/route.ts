@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { boards, columns, cards } from "@/lib/db/schema";
 import { verifyCollaboratorToken } from "@/lib/board";
+import { broadcastBoardEvent } from "@/lib/sse-events";
 import { headers, cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 
@@ -170,6 +171,9 @@ export async function POST(
       color: color || "#d4a574",
     })
     .returning();
+
+  // Broadcast to all connected clients
+  broadcastBoardEvent(boardId, "card:created", newCard[0]);
 
   return Response.json(newCard[0], { status: 201 });
 }

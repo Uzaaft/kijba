@@ -9,6 +9,7 @@ import { AddCardDialog } from "./add-card-dialog";
 import { AddColumnDialog } from "./add-column-dialog";
 import { EditCardDialog } from "./edit-card-dialog";
 import { DeleteConfirmDialog } from "./delete-confirm-dialog";
+import { useRealtime, type BoardEvent } from "@/lib/hooks/use-realtime";
 import { toast } from "sonner";
 
 interface CardData {
@@ -229,6 +230,61 @@ export function Board({ boardId, initialColumns, initialCards }: BoardProps) {
   };
 
   const selectedCard = cards.find((c) => c.id === selectedCardId);
+
+  // Handle real-time events from SSE
+  const handleRealtimeEvent = useCallback((event: BoardEvent) => {
+    switch (event.event) {
+      case "card:created": {
+        const newCard = event.data as CardData;
+        setCards((prev) => {
+          if (prev.some((c) => c.id === newCard.id)) return prev;
+          return [...prev, newCard];
+        });
+        break;
+      }
+
+      case "card:updated": {
+        const updatedCard = event.data as CardData;
+        setCards((prev) =>
+          prev.map((c) => (c.id === updatedCard.id ? updatedCard : c))
+        );
+        break;
+      }
+
+      case "card:deleted": {
+        const { id } = event.data as { id: string };
+        setCards((prev) => prev.filter((c) => c.id !== id));
+        break;
+      }
+
+      case "column:created": {
+        const newColumn = event.data as ColumnData;
+        setColumns((prev) => {
+          if (prev.some((c) => c.id === newColumn.id)) return prev;
+          return [...prev, newColumn];
+        });
+        break;
+      }
+
+      case "column:updated": {
+        const updatedColumn = event.data as ColumnData;
+        setColumns((prev) =>
+          prev.map((c) => (c.id === updatedColumn.id ? updatedColumn : c))
+        );
+        break;
+      }
+
+      case "column:deleted": {
+        const { id } = event.data as { id: string };
+        setColumns((prev) => prev.filter((c) => c.id !== id));
+        setCards((prev) => prev.filter((c) => c.columnId !== id));
+        break;
+      }
+    }
+  }, []);
+
+  // Set up SSE connection for real-time updates
+  useRealtime(boardId, handleRealtimeEvent);
 
   return (
     <div className="w-full">

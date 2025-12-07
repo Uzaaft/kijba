@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { boards, columns, cards } from "@/lib/db/schema";
 import { verifyCollaboratorToken } from "@/lib/board";
+import { broadcastBoardEvent } from "@/lib/sse-events";
 import { headers, cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 
@@ -132,6 +133,9 @@ export async function PATCH(
     .where(eq(cards.id, cardId))
     .returning();
 
+  // Broadcast to all connected clients
+  broadcastBoardEvent(boardId, "card:updated", updated[0]);
+
   return Response.json(updated[0]);
 }
 
@@ -152,7 +156,15 @@ export async function DELETE(
     return Response.json({ error }, { status });
   }
 
-  await db.delete(cards).where(eq(cards.id, cardId));
+  const deletedCard = await db
+    .delete(cards)
+    .where(eq(cards.id, cardId))
+    .returning();
+
+  // Broadcast to all connected clients
+  if (deletedCard.length) {
+    broadcastBoardEvent(boardId, "card:deleted", { id: cardId });
+  }
 
   return Response.json({ success: true });
 }
