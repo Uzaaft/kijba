@@ -64,9 +64,8 @@ export function Column({
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`flex-1 overflow-y-auto rounded-lg transition-colors ${
-              snapshot.isDraggingOver ? "bg-accent/10" : ""
-            }`}
+            className={`flex-1 overflow-y-auto rounded-lg transition-colors ${snapshot.isDraggingOver ? "bg-accent/10" : ""
+              }`}
             style={{ minHeight: "200px" }}
           >
             {sortedCards.length === 0 && (

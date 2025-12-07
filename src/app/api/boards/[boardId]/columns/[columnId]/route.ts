@@ -1,10 +1,15 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { boards, columns } from "@/lib/db/schema";
-import { headers } from "next/headers";
+import { verifyCollaboratorToken } from "@/lib/board";
+import { headers, cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 
-async function getColumnOwnerCheck(boardId: string, columnId: string, userId: string) {
+async function getColumnAccessCheck(
+  boardId: string,
+  columnId: string,
+  userId?: string
+) {
   const board = await db
     .select()
     .from(boards)
@@ -13,10 +18,6 @@ async function getColumnOwnerCheck(boardId: string, columnId: string, userId: st
 
   if (!board.length) {
     return { error: "Board not found", status: 404, column: null };
-  }
-
-  if (board[0].ownerId !== userId) {
-    return { error: "Unauthorized", status: 403, column: null };
   }
 
   const column = await db
@@ -30,10 +31,30 @@ async function getColumnOwnerCheck(boardId: string, columnId: string, userId: st
   }
 
   if (column[0].boardId !== boardId) {
-    return { error: "Column does not belong to this board", status: 400, column: null };
+    return {
+      error: "Column does not belong to this board",
+      status: 400,
+      column: null,
+    };
   }
 
-  return { error: null, status: 200, column: column[0] };
+  // Allow board owner
+  if (userId && board[0].ownerId === userId) {
+    return { error: null, status: 200, column: column[0] };
+  }
+
+  // Check for valid collaborator token
+  const cookieStore = await cookies();
+  const token = cookieStore.get("collab_token")?.value;
+
+  if (token) {
+    const tokenBoardId = verifyCollaboratorToken(token);
+    if (tokenBoardId === boardId) {
+      return { error: null, status: 200, column: column[0] };
+    }
+  }
+
+  return { error: "Unauthorized", status: 403, column: null };
 }
 
 export async function PATCH(
@@ -46,14 +67,11 @@ export async function PATCH(
     headers: await headers(),
   });
 
-  if (!session?.user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { error, status } = await getColumnOwnerCheck(
+  const userId = session?.user?.id;
+  const { error, status } = await getColumnAccessCheck(
     boardId,
     columnId,
-    session.user.id
+    userId
   );
 
   if (error) {
@@ -63,7 +81,7 @@ export async function PATCH(
   const body = await req.json();
   const { name, position } = body;
 
-  const updateData: any = {};
+  const updateData: Record<string, unknown> = {};
 
   if (name && typeof name === "string" && name.trim()) {
     updateData.name = name.trim();
@@ -102,14 +120,11 @@ export async function DELETE(
     headers: await headers(),
   });
 
-  if (!session?.user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { error, status } = await getColumnOwnerCheck(
+  const userId = session?.user?.id;
+  const { error, status } = await getColumnAccessCheck(
     boardId,
     columnId,
-    session.user.id
+    userId
   );
 
   if (error) {

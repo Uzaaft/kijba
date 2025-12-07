@@ -48,6 +48,7 @@ export function Board({ boardId, initialColumns, initialCards }: BoardProps) {
     try {
       const response = await fetch(`/api/boards/${boardId}/columns`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
       });
@@ -69,6 +70,7 @@ export function Board({ boardId, initialColumns, initialCards }: BoardProps) {
     try {
       const response = await fetch(`/api/boards/${boardId}/cards`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ columnId: selectedColumnId, content, color }),
       });
@@ -90,6 +92,7 @@ export function Board({ boardId, initialColumns, initialCards }: BoardProps) {
     try {
       const response = await fetch(`/api/boards/${boardId}/cards/${selectedCardId}`, {
         method: "PATCH",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content, color }),
       });
@@ -111,6 +114,7 @@ export function Board({ boardId, initialColumns, initialCards }: BoardProps) {
     try {
       const response = await fetch(`/api/boards/${boardId}/cards/${selectedCardId}`, {
         method: "DELETE",
+        credentials: "include",
       });
 
       if (!response.ok) throw new Error("Failed to delete card");
@@ -131,6 +135,7 @@ export function Board({ boardId, initialColumns, initialCards }: BoardProps) {
         `/api/boards/${boardId}/columns/${selectedColumnId}`,
         {
           method: "DELETE",
+          credentials: "include",
         }
       );
 
@@ -206,6 +211,7 @@ export function Board({ boardId, initialColumns, initialCards }: BoardProps) {
       try {
         const response = await fetch(`/api/boards/${boardId}/cards/${draggableId}`, {
           method: "PATCH",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             columnId: newColumnId,

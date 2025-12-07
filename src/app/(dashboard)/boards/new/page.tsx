@@ -15,7 +15,12 @@ export default function NewBoardPage() {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [createdBoard, setCreatedBoard] = useState<any>(null);
+  const [createdBoard, setCreatedBoard] = useState<{
+    id: string;
+    name: string;
+    shareCode: string;
+    generatedPassword?: string;
+  } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,10 +84,10 @@ export default function NewBoardPage() {
                   Generated Password
                 </p>
                 <p className="font-semibold text-accent">
-                   {createdBoard.generatedPassword}
-                 </p>
+                  {createdBoard.generatedPassword}
+                </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Save this password - you'll need it to access the board later
+                  Save this password - you&apos;ll need it to access the board later
                 </p>
               </div>
             )}

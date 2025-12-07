@@ -61,7 +61,7 @@ export async function PATCH(
   }
 
   const { boardId } = await params;
-  const { error, status, board } = await getBoardOwnerCheck(
+  const { error, status } = await getBoardOwnerCheck(
     boardId,
     session.user.id
   );
@@ -73,7 +73,7 @@ export async function PATCH(
   const body = await req.json();
   const { name, regeneratePassword } = body;
 
-  const updateData: any = {};
+  const updateData: Record<string, unknown> = {};
   let generatedPassword: string | undefined;
 
   if (name && typeof name === "string" && name.trim().length > 0) {

@@ -1,7 +1,8 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { boards, columns, cards } from "@/lib/db/schema";
-import { headers } from "next/headers";
+import { verifyCollaboratorToken } from "@/lib/board";
+import { headers, cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 
 async function getBoardOwnerCheck(boardId: string, userId: string) {
@@ -22,27 +23,72 @@ async function getBoardOwnerCheck(boardId: string, userId: string) {
   return { error: null, status: 200, board: board[0] };
 }
 
+async function getBoardAccessCheck(boardId: string, userId?: string) {
+  const board = await db
+    .select()
+    .from(boards)
+    .where(eq(boards.id, boardId))
+    .limit(1);
+
+  if (!board.length) {
+    return { error: "Board not found", status: 404, board: null };
+  }
+
+  // Allow board owner
+  if (userId && board[0].ownerId === userId) {
+    return { error: null, status: 200, board: board[0] };
+  }
+
+  // Check for valid collaborator token
+  const cookieStore = await cookies();
+  const token = cookieStore.get("collab_token")?.value;
+
+  if (token) {
+    const tokenBoardId = verifyCollaboratorToken(token);
+    if (tokenBoardId === boardId) {
+      return { error: null, status: 200, board: board[0] };
+    }
+  }
+
+  return { error: "Unauthorized", status: 403, board: null };
+}
+
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ boardId: string }> }
 ) {
   const { boardId } = await params;
+  const { searchParams } = new URL(req.url);
+  const isPublic = searchParams.get("public") === "true";
 
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  if (!isPublic) {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
 
-  if (!session?.user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    if (!session?.user) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { error, status } = await getBoardOwnerCheck(
+      boardId,
+      session.user.id
+    );
+
+    if (error) {
+      return Response.json({ error }, { status });
+    }
   }
 
-  const { error, status } = await getBoardOwnerCheck(
-    boardId,
-    session.user.id
-  );
+  // For public access, just verify the board exists
+  const board = await db
+    .select()
+    .from(boards)
+    .where(eq(boards.id, boardId))
+    .limit(1);
 
-  if (error) {
-    return Response.json({ error }, { status });
+  if (!board.length) {
+    return Response.json({ error: "Board not found" }, { status: 404 });
   }
 
   // Join with columns to get all cards for this board
@@ -65,14 +111,9 @@ export async function POST(
     headers: await headers(),
   });
 
-  if (!session?.user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { error, status } = await getBoardOwnerCheck(
-    boardId,
-    session.user.id
-  );
+  // Check if user is authenticated owner OR has valid collaborator token
+  const userId = session?.user?.id;
+  const { error, status } = await getBoardAccessCheck(boardId, userId);
 
   if (error) {
     return Response.json({ error }, { status });

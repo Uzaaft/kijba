@@ -1,10 +1,15 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { boards, columns, cards } from "@/lib/db/schema";
-import { headers } from "next/headers";
+import { verifyCollaboratorToken } from "@/lib/board";
+import { headers, cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 
-async function getCardOwnerCheck(boardId: string, cardId: string, userId: string) {
+async function getCardAccessCheck(
+  boardId: string,
+  cardId: string,
+  userId?: string
+) {
   const board = await db
     .select()
     .from(boards)
@@ -13,10 +18,6 @@ async function getCardOwnerCheck(boardId: string, cardId: string, userId: string
 
   if (!board.length) {
     return { error: "Board not found", status: 404, card: null };
-  }
-
-  if (board[0].ownerId !== userId) {
-    return { error: "Unauthorized", status: 403, card: null };
   }
 
   const card = await db
@@ -37,10 +38,30 @@ async function getCardOwnerCheck(boardId: string, cardId: string, userId: string
     .limit(1);
 
   if (!column.length || column[0].boardId !== boardId) {
-    return { error: "Card does not belong to this board", status: 400, card: null };
+    return {
+      error: "Card does not belong to this board",
+      status: 400,
+      card: null,
+    };
   }
 
-  return { error: null, status: 200, card: card[0] };
+  // Allow board owner
+  if (userId && board[0].ownerId === userId) {
+    return { error: null, status: 200, card: card[0] };
+  }
+
+  // Check for valid collaborator token
+  const cookieStore = await cookies();
+  const token = cookieStore.get("collab_token")?.value;
+
+  if (token) {
+    const tokenBoardId = verifyCollaboratorToken(token);
+    if (tokenBoardId === boardId) {
+      return { error: null, status: 200, card: card[0] };
+    }
+  }
+
+  return { error: "Unauthorized", status: 403, card: null };
 }
 
 export async function PATCH(
@@ -53,15 +74,8 @@ export async function PATCH(
     headers: await headers(),
   });
 
-  if (!session?.user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { error, status } = await getCardOwnerCheck(
-    boardId,
-    cardId,
-    session.user.id
-  );
+  const userId = session?.user?.id;
+  const { error, status } = await getCardAccessCheck(boardId, cardId, userId);
 
   if (error) {
     return Response.json({ error }, { status });
@@ -70,7 +84,7 @@ export async function PATCH(
   const body = await req.json();
   const { content, position, color, columnId } = body;
 
-  const updateData: any = {};
+  const updateData: Record<string, unknown> = {};
 
   if (content && typeof content === "string" && content.trim()) {
     updateData.content = content.trim();
@@ -131,15 +145,8 @@ export async function DELETE(
     headers: await headers(),
   });
 
-  if (!session?.user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { error, status } = await getCardOwnerCheck(
-    boardId,
-    cardId,
-    session.user.id
-  );
+  const userId = session?.user?.id;
+  const { error, status } = await getCardAccessCheck(boardId, cardId, userId);
 
   if (error) {
     return Response.json({ error }, { status });

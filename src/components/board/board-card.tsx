@@ -26,7 +26,6 @@ export function BoardCard({
   createdAt,
   onDelete,
 }: BoardCardProps) {
-  const boardUrl = `/b/${shareCode}`;
   const formattedDate = new Date(createdAt).toLocaleDateString();
 
   return (

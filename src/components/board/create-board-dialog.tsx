@@ -13,10 +13,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+interface Board {
+  id: string;
+  name: string;
+  shareCode: string;
+  createdAt: string;
+}
+
 interface CreateBoardDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onBoardCreated?: (board: any) => void;
+  onBoardCreated?: (board: Board) => void;
 }
 
 export function CreateBoardDialog({
