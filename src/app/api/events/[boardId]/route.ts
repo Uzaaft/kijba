@@ -69,7 +69,7 @@ function createSSEStream(boardId: string) {
         try {
           const encoded = encoder.encode(message);
           controller.enqueue(encoded);
-        } catch (error) {
+        } catch {
           // Client likely disconnected
           cleanup();
         }
@@ -82,7 +82,7 @@ function createSSEStream(boardId: string) {
       const keepAliveInterval = setInterval(() => {
         try {
           send(": keep-alive\n\n");
-        } catch (error) {
+        } catch {
           clearInterval(keepAliveInterval);
           cleanup();
         }

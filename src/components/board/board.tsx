@@ -30,9 +30,10 @@ interface BoardProps {
   boardId: string;
   initialColumns: ColumnData[];
   initialCards: CardData[];
+  boardContainerRef?: React.RefObject<HTMLDivElement> | null;
 }
 
-export function Board({ boardId, initialColumns, initialCards }: BoardProps) {
+export function Board({ boardId, initialColumns, initialCards, boardContainerRef }: BoardProps) {
   const [columns, setColumns] = useState<ColumnData[]>(initialColumns);
   const [cards, setCards] = useState<CardData[]>(initialCards);
 
@@ -289,7 +290,7 @@ export function Board({ boardId, initialColumns, initialCards }: BoardProps) {
   return (
     <div className="w-full">
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="flex gap-4 overflow-x-auto pb-4 pr-4" ref={boardContainerRef}>
           {columns
             .sort((a, b) => a.position - b.position)
             .map((column) => (

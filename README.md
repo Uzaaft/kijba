@@ -1,36 +1,156 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kan I Just Ban Already
+
+A modern, collaborative Kanban board application built with Next.js, TypeScript, and PostgreSQL. Create boards, organize tasks into columns, and share your workflow with others.
+
+## Features
+
+- **Create & Manage Boards** - Create boards with password protection and shareable links
+- **Drag-and-Drop Interface** - Reorder cards and columns using intuitive drag-and-drop
+- **Real-time Updates** - Server-Sent Events (SSE) for live board synchronization
+- **User Authentication** - Email/password authentication with session management
+- **Responsive Design** - Works seamlessly on desktop and mobile devices
+
+## Tech Stack
+
+- **Frontend**: Next.js 16 (App Router) + React 19 + TypeScript
+- **Database**: PostgreSQL + Drizzle ORM
+- **Authentication**: Better Auth (email/password, cookie-based sessions)
+- **UI Components**: shadcn/ui + Tailwind CSS 4 + Radix UI primitives
+- **Drag & Drop**: @hello-pangea/dnd
+- **Notifications**: Sonner (toast notifications)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- pnpm (recommended) or npm
+- PostgreSQL database
+- Docker (optional, for database)
+
+### Installation
+
+1. Clone the repository:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/your-repo/kan-i-just-ban-already.git
+cd kan-i-just-ban-already
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+nix develop # if using Nix
+pnpm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Set up environment variables:
 
-## Learn More
+```bash
+cp .env.example .env
+```
 
-To learn more about Next.js, take a look at the following resources:
+4. Set up the database:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm db:push
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Development
 
-## Deploy on Vercel
+Start the development server:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+pnpm dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Build & Production
+
+Build for production:
+
+```bash
+pnpm build
+```
+
+Start production server:
+
+```bash
+pnpm start
+```
+
+## Project Structure
+
+```
+src/
+├── app/                    # Next.js routes
+│   ├── (auth)/            # Authentication pages (login, signup)
+│   ├── (dashboard)/       # Protected dashboard routes
+│   │   └── boards/        # Board management
+│   ├── api/               # API routes
+│   │   └── events/        # SSE endpoint for real-time updates
+│   └── public/            # Public board viewing
+├── components/            # Reusable React components
+├── lib/
+│   ├── auth.ts           # Better Auth server configuration
+│   ├── auth-client.ts    # Better Auth client hooks
+│   ├── db/               # Database client and schema
+│   └── utils/            # Utility functions
+drizzle/                  # Database migrations
+```
+
+## Database Schema
+
+**Core Tables**:
+
+- `boards` - Kanban boards (uuid, owner_id, name, shareCode, passwordHash)
+- `columns` - Board columns (uuid, boardId, name, position)
+- `cards` - Cards in columns (uuid, columnId, content, position, color)
+
+**Auth Tables** (Better Auth managed):
+
+- `users` - User accounts
+- `sessions` - User sessions
+- `accounts` - OAuth accounts
+- `verifications` - Email verification tokens
+
+## Available Commands
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start development server on port 3000 |
+| `pnpm build` | Build for production |
+| `pnpm start` | Start production server |
+| `pnpm lint` | Run ESLint |
+| `pnpm tsc --noEmit` | Type check without emitting |
+| `pnpm db:push` | Apply Drizzle migrations |
+
+## Code Style & Conventions
+
+- **Imports**: Use `@/*` path alias
+- **Client/Server**: Mark client components with `"use client"`
+- **Naming**: camelCase for functions, PascalCase for components
+- **Error Handling**: Wrap fetches in try-catch, show errors via `toast.error()`
+- **Exports**: Default exports for pages, named exports for components
+- **Formatting**: Prettier via ESLint (flat config)
+
+## Docker Setup
+
+Run PostgreSQL locally with Docker:
+
+```bash
+docker-compose up -d
+```
+
+## Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Ensure code is linted: `pnpm lint`
+4. Type check: `pnpm tsc --noEmit`
+5. Submit a pull request
+
+## License
+
+MIT

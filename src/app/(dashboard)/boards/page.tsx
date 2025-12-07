@@ -72,16 +72,16 @@ export default function BoardsPage() {
   };
 
   return (
-    <div className="container py-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="container py-8 px-4 mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold">My Boards</h1>
+          <h1 className="text-3xl md:text-4xl font-bold">My Boards</h1>
           <p className="text-muted-foreground mt-2">
             Create and manage your Kanban boards
           </p>
         </div>
-        <Button onClick={() => setDialogOpen(true)} size="lg">
-          <Plus className="mr-2 h-4 w-4" />
+        <Button onClick={() => setDialogOpen(true)} size="lg" className="gap-2">
+          <Plus className="h-4 w-4" />
           New Board
         </Button>
       </div>
@@ -93,18 +93,22 @@ export default function BoardsPage() {
       />
 
       {loading ? (
-        <div className="text-center py-12">
+        <div className="text-center py-20">
           <p className="text-muted-foreground">Loading boards...</p>
         </div>
       ) : boards.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground mb-4">
-            No boards yet. Create your first board to get started!
-          </p>
-          <Button onClick={() => setDialogOpen(true)}>Create Board</Button>
+        <div className="text-center py-20">
+          <div className="space-y-4">
+            <p className="text-lg text-muted-foreground">
+              No boards yet. Create your first board to get started!
+            </p>
+            <Button onClick={() => setDialogOpen(true)} size="lg">
+              Create Your First Board
+            </Button>
+          </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {boards.map((board) => (
             <BoardCard
               key={board.id}

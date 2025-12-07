@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreVertical } from "lucide-react";
+import { toast } from "sonner";
+import { BoardSettingsModal } from "./board-settings-modal";
 
 interface BoardCardProps {
   id: string;
@@ -26,6 +29,7 @@ export function BoardCard({
   createdAt,
   onDelete,
 }: BoardCardProps) {
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const formattedDate = new Date(createdAt).toLocaleDateString();
 
   return (
@@ -53,14 +57,15 @@ export function BoardCard({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link href={`/boards/${id}`}>Settings</Link>
+            <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
+              Settings
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
                 navigator.clipboard.writeText(
                   `${window.location.origin}/b/${shareCode}`
                 );
+                toast.success("Share link copied to clipboard");
               }}
             >
               Copy Share Link
@@ -74,6 +79,12 @@ export function BoardCard({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <BoardSettingsModal
+        boardId={id}
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+      />
     </Card>
   );
 }

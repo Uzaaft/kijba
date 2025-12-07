@@ -15,10 +15,31 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kan I Just Ban Already",
-  description: "Frictionless collaborative Kanban boards",
+  title: "Kan I Just Ban Already - Collaborative Kanban Boards",
+  description:
+    "Frictionless collaborative Kanban boards. No accounts needed for team members—just a link and a password.",
+  keywords: [
+    "kanban",
+    "board",
+    "collaboration",
+    "project management",
+    "task management",
+  ],
   icons: {
     icon: "https://fav.farm/📋",
+  },
+  openGraph: {
+    title: "Kan I Just Ban Already",
+    description:
+      "Frictionless collaborative Kanban boards. No accounts needed for team members.",
+    type: "website",
+    url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Kan I Just Ban Already",
+    description:
+      "Frictionless collaborative Kanban boards for quick brainstorming.",
   },
 };
 
