@@ -68,7 +68,7 @@ export function BoardCard({
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onDelete?.(id)}
-              className="text-red-600"
+              className="text-destructive"
             >
               Delete
             </DropdownMenuItem>

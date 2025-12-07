@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
-import { Rethink_Sans } from "next/font/google";
+import { Rethink_Sans, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 
 const rethinkSans = Rethink_Sans({
   variable: "--font-rethink-sans",
   subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -24,7 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${rethinkSans.variable} font-sans antialiased`}
+        className={`${rethinkSans.variable} ${geistMono.variable} font-sans antialiased`}
       >
         {children}
         <Toaster />

@@ -78,9 +78,9 @@ export default function NewBoardPage() {
                 <p className="text-sm text-muted-foreground">
                   Generated Password
                 </p>
-                <p className="font-semibold text-yellow-600">
-                  {createdBoard.generatedPassword}
-                </p>
+                <p className="font-semibold text-accent">
+                   {createdBoard.generatedPassword}
+                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Save this password - you'll need it to access the board later
                 </p>

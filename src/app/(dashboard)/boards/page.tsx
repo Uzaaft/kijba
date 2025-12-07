@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CreateBoardDialog } from "@/components/board/create-board-dialog";
 import { BoardCard } from "@/components/board/board-card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Plus } from "lucide-react";
 
 interface Board {
@@ -18,6 +19,8 @@ export default function BoardsPage() {
   const [boards, setBoards] = useState<Board[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deletingBoardId, setDeletingBoardId] = useState<string | null>(null);
 
   const loadBoards = async () => {
     try {
@@ -39,19 +42,27 @@ export default function BoardsPage() {
   }, []);
 
   const handleDeleteBoard = async (boardId: string) => {
-    if (!confirm("Are you sure you want to delete this board?")) return;
+    setDeletingBoardId(boardId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteBoard = async () => {
+    if (!deletingBoardId) return;
 
     try {
-      const response = await fetch(`/api/boards/${boardId}`, {
+      const response = await fetch(`/api/boards/${deletingBoardId}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Failed to delete board");
-      setBoards(boards.filter((b) => b.id !== boardId));
+      setBoards(boards.filter((b) => b.id !== deletingBoardId));
       toast.success("Board deleted successfully");
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to delete board"
       );
+    } finally {
+      setDeletingBoardId(null);
+      setDeleteConfirmOpen(false);
     }
   };
 
@@ -103,6 +114,16 @@ export default function BoardsPage() {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Delete Board?"
+        description="This board and all its contents will be permanently deleted. This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
+        onConfirm={confirmDeleteBoard}
+      />
     </div>
   );
 }
